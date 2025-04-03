@@ -112,24 +112,24 @@ def main():
         else:
             print("Failed to capture a valid face.")
 
-    elif choice == '2':
-        face_encodings, face_locations, group_image = process_group_photo()
-        if face_encodings and face_locations:
-            recognized_names = recognize_faces(face_encodings, known_face_encodings, known_face_names)
-            print("Recognized faces:", recognized_names)
+    # elif choice == '2':
+    #     face_encodings, face_locations, group_image = process_group_photo()
+    #     if face_encodings and face_locations:
+    #         recognized_names = recognize_faces(face_encodings, known_face_encodings, known_face_names)
+    #         print("Recognized faces:", recognized_names)
 
-            # Draw rectangles and names on the image
-            for (top, right, bottom, left), name in zip(face_locations, recognized_names):
-                cv2.rectangle(group_image, (left, top), (right, bottom), (0, 0, 255), 2)
-                cv2.putText(group_image, name, (left + 6, bottom + 20), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255), 1)
+    #         # Draw rectangles and names on the image
+    #         for (top, right, bottom, left), name in zip(face_locations, recognized_names):
+    #             cv2.rectangle(group_image, (left, top), (right, bottom), (0, 0, 255), 2)
+    #             cv2.putText(group_image, name, (left + 6, bottom + 20), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255), 1)
 
-            # Show the annotated group image
-            cv2.imshow("Group Photo", group_image)
-            print("Press any key to close the image...")
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
-        else:
-            print("Failed to process the group photo.")
+    #         # Show the annotated group image
+    #         cv2.imshow("Group Photo", group_image)
+    #         print("Press any key to close the image...")
+    #         cv2.waitKey(0)
+    #         cv2.destroyAllWindows()
+    #     else:
+    #         print("Failed to process the group photo.")
     else:
         print("Invalid choice. Please enter 1 or 2.")
 
