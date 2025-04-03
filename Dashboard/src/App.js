@@ -10,6 +10,7 @@ import {
   TableRow,
   Paper,
   Typography,
+  Button, // Import Button component
 } from "@mui/material";
 
 function App() {
@@ -28,11 +29,29 @@ function App() {
       .catch((error) => console.log("Error fetching users:", error));
   }, []);
 
+  const startCamera = () => {
+    axios
+      .post("http://localhost:4000/start-camera")
+      .then((response) => {
+        alert("Camera client started successfully!");
+      })
+      .catch((error) => {
+        console.error("Error starting the camera client:", error);
+        alert("Failed to start the camera client.");
+      });
+  };
+
   return (
     <Container>
       <Typography variant="h3" gutterBottom>
         Events Dashboard
       </Typography>
+
+      {/* Add Button for starting the camera client */}
+      <Button variant="contained" color="primary" onClick={startCamera}>
+        Start Camera Client
+      </Button>
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
