@@ -55,7 +55,10 @@ class APIWorker:
             message = "⚠️ Response timeout"
         except Exception as e:
             message = f"⚠️ Error: {str(e)}"
-
+        
+        finally:
+            print(message)
+            
         with self.lock:
             self.last_message = message
             self.message_expiry = time.time() + 3
