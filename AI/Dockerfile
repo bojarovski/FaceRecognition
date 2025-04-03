@@ -1,8 +1,10 @@
+# 1. Use an official Python base image
 FROM python:3.8-slim
 
+# 2. Set the working directory
 WORKDIR /app
 
-# Install system dependencies + core utilities
+# 3. Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -14,12 +16,17 @@ RUN apt-get update && apt-get install -y \
     vim \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
+# 4. Copy your requirements file first (for better caching)
 COPY requirements.txt .
+
+# 5. Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy all source files
+# 6. Copy the rest of your app (including recognition_server.py, known_faces.pkl, etc.)
 COPY . .
 
-# Default command when container starts
+# 7. Expose port 5000 (where Flask server listens)
+EXPOSE 5000
+
+# 8. Default command: start the Flask face recognition server
 CMD ["/bin/bash"]
