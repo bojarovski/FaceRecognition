@@ -1,26 +1,25 @@
-# Use an official Python runtime as a parent image
 FROM python:3.8-slim
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies required for dlib and other packages
+# Install system dependencies + core utilities
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
     libopenblas-dev \
     liblapack-dev \
+    libgl1-mesa-glx \
     libx11-dev \
+    curl \
+    vim \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the current directory contents into the container at /app
-COPY . /app
-
-# Install any needed packages specified in requirements.txt
+# Copy requirements first for better caching
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Run the training script
-# RUN python training_script.py
+# Copy all source files
+COPY . .
 
-# Run the test script
-CMD ["python", "test_model.py"]
+# Default command when container starts
+CMD ["/bin/bash"]
