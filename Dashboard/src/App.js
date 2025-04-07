@@ -10,35 +10,84 @@ import {
   TableRow,
   Paper,
   Typography,
-  Button, // Import Button component
+  Button,
+  Stack,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 function App() {
   const [events, setEvents] = useState([]);
   const [users, setUsers] = useState([]);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
 
+  // Load events and users
   useEffect(() => {
     axios
       .get("http://localhost:5000/events")
-      .then((response) => setEvents(response.data))
-      .catch((error) => console.log("Error fetching events:", error));
+      .then((res) => {
+        console.log("📅 Events:", res.data);
+        setEvents(res.data);
+      })
+      .catch((err) => console.error("❌ Events fetch error:", err));
 
     axios
       .get("http://localhost:5000/users")
-      .then((response) => setUsers(response.data))
-      .catch((error) => console.log("Error fetching users:", error));
+      .then((res) => {
+        console.log("👤 Users:", res.data);
+        setUsers(res.data);
+      })
+      .catch((err) => console.error("❌ Users fetch error:", err));
   }, []);
 
-  const startCamera = () => {
-    axios
-      .post("http://localhost:4000/start-camera")
-      .then((response) => {
-        alert("Camera client started successfully!");
-      })
-      .catch((error) => {
-        console.error("Error starting the camera client:", error);
-        alert("Failed to start the camera client.");
+  const startCamera = async () => {
+    try {
+      const response = await axios.post("http://localhost:4000/start-camera");
+      const status = response.status;
+
+      setSnackbar({
+        open: true,
+        message: response.data.message,
+        severity: status === 200 ? "success" : "warning", // 200 OK or 409 Conflict
       });
+    } catch (error) {
+      const fallbackMsg =
+        error.response?.data?.error || "Failed to start camera ❌";
+      const status = error.response?.status;
+
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || fallbackMsg,
+        severity: status === 409 ? "warning" : "error",
+      });
+    }
+  };
+
+  const stopCamera = async () => {
+    try {
+      const response = await axios.post("http://localhost:4000/stop-camera");
+      const status = response.status;
+
+      setSnackbar({
+        open: true,
+        message: response.data.message,
+        severity: status === 200 ? "success" : "warning",
+      });
+    } catch (error) {
+      const fallbackMsg =
+        error.response?.data?.error || "Failed to stop camera ❌";
+      const status = error.response?.status;
+
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || fallbackMsg,
+        severity: status === 409 ? "warning" : "error",
+      });
+    }
   };
 
   return (
@@ -47,10 +96,14 @@ function App() {
         Events Dashboard
       </Typography>
 
-      {/* Add Button for starting the camera client */}
-      <Button variant="contained" color="primary" onClick={startCamera}>
-        Start Camera Client
-      </Button>
+      <Stack direction="row" spacing={2} mb={3}>
+        <Button variant="contained" color="success" onClick={startCamera}>
+          Start Camera Client
+        </Button>
+        <Button variant="contained" color="error" onClick={stopCamera}>
+          Stop Camera Client
+        </Button>
+      </Stack>
 
       <TableContainer component={Paper}>
         <Table>
@@ -73,10 +126,10 @@ function App() {
                   {new Date(event.endTime).toLocaleString()}
                 </TableCell>
                 <TableCell>
-                  {event.participants.map((userId) => {
-                    const user = users.find((user) => user._id === userId);
+                  {event.participants.map((id) => {
+                    const user = users.find((u) => u._id === id);
                     return user ? (
-                      <p key={userId}>
+                      <p key={id}>
                         {user.name} {user.surname}
                       </p>
                     ) : null;
@@ -87,6 +140,20 @@ function App() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
