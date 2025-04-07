@@ -27,6 +27,6 @@ COPY . .
 
 # 7. Expose port 5000 (where Flask server listens)
 EXPOSE 5000
-
+ 
 # 8. Default command: start the Flask face recognition server
 CMD ["/bin/bash"]

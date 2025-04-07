@@ -11,17 +11,7 @@ app.use(express.json());
 
 // CORS setup with IP whitelist
 const whitelist = process.env.WHITELIST_IPS.split(",");
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || whitelist.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-  })
-);
+app.use(cors());
 
 // MongoDB connection
 mongoose

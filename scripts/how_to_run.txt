@@ -1,0 +1,5 @@
+./scripts/setup_venvs.sh           # only once
+./scripts/docker_build.sh          # only once or when you change AI code
+./scripts/docker_run.sh            # to launch AI container
+./scripts/run_flask.sh             # to control the camera
+./scripts/run_express.sh           # to serve /users and /events
