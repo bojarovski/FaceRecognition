@@ -7,7 +7,7 @@ import threading
 from queue import Queue
 from requests.exceptions import ConnectionError, Timeout
 
-SERVER_URL = 'http://127.0.0.1:5000/recognize'  # Update with your server URL
+SERVER_URL = 'http://localhost:5001/recognize'  # Update with your server URL
 
 class APIWorker:
     def __init__(self):
@@ -42,8 +42,12 @@ class APIWorker:
             image_data = base64.b64encode(buffer).decode('utf-8')
             response = requests.post(SERVER_URL, json={'image': image_data}, timeout=1)
             
+            print(f"📬 Server responded with status code: {response.status_code}")
+
             if response.ok:
                 data = response.json()
+                print("📦 Response JSON:", data)  # <--- ADDED DEBUG PRINT
+
                 names = data.get('recognized_faces', [])
                 message = ", ".join(names) if names else "No recognized faces"
                 print(f"Recognized: {message}")
@@ -57,7 +61,8 @@ class APIWorker:
             message = f"⚠️ Error: {str(e)}"
         
         finally:
-            print(message)
+            print("📢 Final message to display:", message)  # <--- LOG FINAL MESSAGE
+
             
         with self.lock:
             self.last_message = message
