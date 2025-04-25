@@ -15,7 +15,7 @@ AI_Controll instructions
 
 python -m venv app-venv
 source app-venv/bin/activate
-pip install -r req_ap.py.txt
+pip install -r req_app.py.txt
 deactivate
 
 python -m venv cam-venv
