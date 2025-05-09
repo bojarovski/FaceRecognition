@@ -29,4 +29,4 @@ COPY . .
 EXPOSE 5000
  
 # 8. Default command: start the Flask face recognition server
-CMD ["/bin/bash"]
+CMD ["python", "recognition_server.py"]

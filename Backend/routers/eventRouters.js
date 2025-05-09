@@ -54,4 +54,35 @@ router.get("/:eventId", async (req, res) => {
   }
 });
 
+/**
+ * PATCH /events/:id/close
+ *   – when you click “Stop”, call this to stamp endTime = now
+ */
+router.patch("/:id/close", async (req, res) => {
+  try {
+    const updated = await Event.findByIdAndUpdate(
+      req.params.id,
+      { endTime: Date.now() },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ error: "Event not found" });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const deleted = await Event.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: "Event not found" });
+    // optional: also remove all its attendance rows
+    await require("../models/Attendence").deleteMany({ event: req.params.id });
+    return res.sendStatus(204);
+  } catch (err) {
+    console.error("DELETE /events/:id error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
