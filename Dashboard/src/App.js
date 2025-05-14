@@ -48,7 +48,7 @@ export default function App() {
 
   const refreshEvents = async () => {
     try {
-      const { data } = await axios.get("http://localhost:5000/events");
+      const { data } = await axios.get("http://localhost:5050/events");
       setEvents(data);
     } catch (err) {
       console.error(err);
@@ -59,7 +59,7 @@ export default function App() {
   const fetchAttendance = async (eventId) => {
     try {
       const { data } = await axios.get(
-        `http://localhost:5000/attendance/event/${eventId}`
+        `http://localhost:5050/attendance/event/${eventId}`
       );
       setAttendance((prev) => ({ ...prev, [eventId]: data }));
     } catch (err) {
@@ -122,7 +122,7 @@ export default function App() {
 
     try {
       const { data: newEvent } = await axios.post(
-        "http://localhost:5000/events",
+        "http://localhost:5050/events",
         {
           name: eventName,
           startTime: new Date().toISOString(),
@@ -143,7 +143,7 @@ export default function App() {
   const handleDeleteEvent = async (eventId) => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
     try {
-      await axios.delete(`http://localhost:5000/events/${eventId}`);
+      await axios.delete(`http://localhost:5050/events/${eventId}`);
       notify("Event deleted", "info");
       // refresh both lists
       refreshEvents();
@@ -162,7 +162,7 @@ export default function App() {
     try {
       await stopCamera();
       await axios.patch(
-        `http://localhost:5000/events/${currentEvent._id}/close`
+        `http://localhost:5050/events/${currentEvent._id}/close`
       );
       await refreshEvents();
       await fetchAttendance(currentEvent._id);
