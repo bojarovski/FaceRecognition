@@ -63,17 +63,74 @@ router.post("/by-name", async (req, res) => {
       user = await User.create({ name: first, surname, email: "", image: "" });
     }
 
-    await Attendance.updateOne(
+    const result = await Attendance.updateOne(
       { event: eventId, user: user._id },
       { $setOnInsert: { seenAt: new Date() } },
       { upsert: true }
     );
 
-    return res.sendStatus(200);
+    if (result.upsertedCount && result.upsertedCount > 0) {
+      // New attendance inserted
+      return res.status(201).json({ message: "Attendance recorded (new)" });
+    } else {
+      // Already exists
+      return res.status(200).json({ message: "Already recorded" });
+    }
+
   } catch (err) {
     console.error("Attendance by-name error:", err);
     return res.status(500).json({ error: err.message });
   }
 });
+
+router.post("/emotion-detected", async (req, res) => {
+  try {
+    const { eventId, name, emotion } = req.body;
+
+    if (!eventId || !name || !emotion || !Array.isArray(emotion) || emotion.length === 0) {
+      return res.status(400).json({ error: "eventId, name, and non-empty emotion array required" });
+    }
+
+    // Split full name into first name + surname
+    const parts = name.trim().split(/\s+/);
+    const first = parts.shift();
+    const surname = parts.join(" ") || "";
+
+    // Find the user
+    const user = await User.findOne({ name: first, surname });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Find the most confident emotion
+    const topEmotion = emotion.reduce((best, current) =>
+      current.confidence > best.confidence ? current : best
+    );
+
+    // Update the attendance entry
+    const updateResult = await Attendance.updateOne(
+      { event: eventId, user: user._id },
+      {
+        $set: {
+          emotion: {
+            emotion: topEmotion.emotion,
+            confidence: topEmotion.confidence,
+          },
+        },
+      }
+    );
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ error: "Attendance entry not found" });
+    }
+
+    console.log(`🎭 Updated emotion for ${name}:`, topEmotion);
+    return res.sendStatus(200);
+  } catch (err) {
+    console.error("Emotion logging error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 
 module.exports = router;

@@ -29,7 +29,10 @@ def analyse():
         )
         faces = res if isinstance(res, list) else [res]
     except Exception as e:
+        print(f"[DeepFace error] {type(e).__name__}: {e}")
         return jsonify({"error": f"model failed: {e}"}), 500
+
+
 
     out = []
     for f in faces:

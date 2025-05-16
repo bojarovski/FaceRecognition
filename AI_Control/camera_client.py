@@ -19,18 +19,19 @@ import requests
 from requests.exceptions import ConnectionError, Timeout
 
 # ─── Configuration ───────────────────────────────────────────
-FRAME_INTERVAL   = 0.5   # seconds between uploads per agent
 MESSAGE_LIFETIME = 3     # toast line lifetime
 
 AGENT_SPECS: List[dict] = [
     {
         "name": "faces",
         "url": "http://localhost:5001/recognize",
+        "interval": 1,  
         "parse": lambda js: ", ".join(js.get("recognized_faces", [])) or "No faces",
     },
     {
         "name": "emotion",
         "url": "http://localhost:5002/analyse",
+        "interval": 1, 
         "parse": lambda js: (
             "No emotion"
             if not js.get("emotions")
@@ -40,6 +41,7 @@ AGENT_SPECS: List[dict] = [
         ),
     },
 ]
+
 
 # ─── Dynamic event-ID helper ─────────────────────────────────
 def load_event_id() -> str | None:
@@ -61,22 +63,33 @@ if not EVENT_ID:
 class APIWorker(threading.Thread):
     """Uploads frames to one service and keeps its latest toast message."""
 
-    def __init__(self, name: str, url: str, parse_fn: Callable[[dict], str]):
+    def __init__(self, name: str, url: str, parse_fn: Callable[[dict], str], interval: float):
         super().__init__(daemon=True)
-        self.name, self.url, self.parse_fn = name, url, parse_fn
-        self.queue          = Queue(maxsize=1)
-        self.last_message   = ""
+        self.name = name
+        self.url = url
+        self.parse_fn = parse_fn
+        self.interval = interval
+        self.queue = Queue(maxsize=1)
+        self.last_message = ""
         self.message_expiry = 0.0
-        self.lock           = threading.Lock()
+        self.last_sent_time = 0.0  # NEW: track per-agent send time
+        self.lock = threading.Lock()
 
-    # enqueue a frame (drops oldest if still waiting)
+
     def enqueue(self, frame: np.ndarray):
+        now = time.time()
+        if now - self.last_sent_time < self.interval:
+            return  # Skip sending if interval hasn't passed
+        self.last_sent_time = now
+
         try:
+            resized = cv2.resize(frame, (640, 480))  # Resize to speed up API
             if self.queue.full():
                 self.queue.get_nowait()
-            self.queue.put_nowait(frame.copy())
-        except Exception:
-            pass
+            self.queue.put_nowait(resized)
+        except Exception as e:
+            print(f"[{self.name}] Failed to enqueue frame: {e}")
+
 
     # thread main
     def run(self):
@@ -104,13 +117,42 @@ class APIWorker(threading.Thread):
                 if self.name == "faces" and EVENT_ID:
                     for person in res.json().get("recognized_faces", []):
                         try:
-                            requests.post(
+                            # Save JPEG of current image for emotion analysis
+                            image_b64 = base64.b64encode(buf).decode()
+
+                            att_res = requests.post(
                                 "http://localhost:5050/attendance/by-name",
                                 json={"eventId": EVENT_ID, "name": person},
                                 timeout=5,
                             )
-                        except Exception as exc:       # network hiccup only prints
+
+                            if att_res.status_code == 201:
+                                # Call emotion detection ONLY if attendance was new
+                                emo_res = requests.post(
+                                    "http://localhost:5002/analyse",
+                                    json={"image": image_b64},
+                                    timeout=5,
+                                )
+                                if emo_res.ok:
+                                    emo_payload = emo_res.json()
+                                    try:
+                                        # Send to logging route
+                                        requests.post(
+                                            "http://localhost:5050/attendance/emotion-detected",
+                                            json={
+                                                "eventId": EVENT_ID,
+                                                "name": person,
+                                                "emotion": emo_payload.get("emotions", []),
+                                            },
+                                            timeout=5,
+                                        )
+                                    except Exception as log_exc:
+                                        print(f"[Emotion log] {person}: {log_exc}")
+                                else:
+                                    print(f"[Emotion API] {emo_res.status_code}")
+                        except Exception as exc:
                             print(f"[Attendance] {person}: {exc}")
+
             else:
                 msg = f"{self.name}: HTTP {res.status_code}"
 
@@ -154,15 +196,13 @@ def draw_toast(frame: np.ndarray, message: str, screen_w: int, screen_h: int) ->
 
 # ─── Utilities ───────────────────────────────────────────────────────────────
 
+import AppKit
+
 def get_screen_resolution() -> tuple[int, int]:
-    try:
-        import tkinter as tk
-        root = tk.Tk()
-        w, h = root.winfo_screenwidth(), root.winfo_screenheight()
-        root.destroy()
-        return w, h
-    except Exception:
-        return 1920, 1080
+    screen = AppKit.NSScreen.mainScreen()
+    frame = screen.frame()
+    return int(frame.size.width), int(frame.size.height)
+
 
 def open_camera(index: int = 0) -> cv2.VideoCapture:
     for backend in (cv2.CAP_AVFOUNDATION, cv2.CAP_QT):
@@ -177,10 +217,14 @@ def open_camera(index: int = 0) -> cv2.VideoCapture:
 def capture_and_send(device_index: int = 0):
     cap = open_camera(device_index)
 
-    workers = [APIWorker(s["name"], s["url"], s["parse"]) for s in AGENT_SPECS]
+    workers = [
+        APIWorker(s["name"], s["url"], s["parse"], s["interval"])
+        for s in AGENT_SPECS
+    ]
+
     for w in workers:
         w.start()
-
+    
     cv2.namedWindow("Kiosk", cv2.WINDOW_NORMAL)
     cv2.setWindowProperty("Kiosk", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     screen_w, screen_h = get_screen_resolution()
@@ -194,10 +238,9 @@ def capture_and_send(device_index: int = 0):
                 break
 
             now = time.time()
-            if now - last_sent >= FRAME_INTERVAL:
-                for w in workers:
-                    w.enqueue(frame)
-                last_sent = now
+            for w in workers:
+                w.enqueue(frame)
+                
 
             # build toast line
             messages = []

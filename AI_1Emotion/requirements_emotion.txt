@@ -2,3 +2,4 @@ flask
 opencv-python-headless
 deepface==0.0.93          # already there
 tf-keras                  # ← ADD THIS
+numpy

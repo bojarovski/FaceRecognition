@@ -25,10 +25,9 @@ import {
 } from "@mui/material";
 
 export default function App() {
-  // ───────────────── state ─────────────────
   const [events, setEvents] = useState([]);
-  const [attendance, setAttendance] = useState({}); // { [eventId]: [ { user, seenAt } ] }
-  const [currentEvent, setCurrentEvent] = useState(null); // for camera
+  const [attendance, setAttendance] = useState({});
+  const [currentEvent, setCurrentEvent] = useState(null);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [eventName, setEventName] = useState("");
@@ -42,7 +41,6 @@ export default function App() {
     severity: "info",
   });
 
-  // ───────────────── helpers ─────────────────
   const notify = (message, severity = "info") =>
     setSnackbar({ open: true, message, severity });
 
@@ -100,7 +98,6 @@ export default function App() {
     }
   };
 
-  // ───────────────── lifecycle ─────────────────
   useEffect(() => {
     refreshEvents();
   }, []);
@@ -109,7 +106,6 @@ export default function App() {
     events.forEach((e) => fetchAttendance(e._id));
   }, [events]);
 
-  // ───────────────── camera flow ─────────────────
   const handleStartClick = () => {
     setDialogOpen(true);
   };
@@ -145,7 +141,6 @@ export default function App() {
     try {
       await axios.delete(`http://localhost:5050/events/${eventId}`);
       notify("Event deleted", "info");
-      // refresh both lists
       refreshEvents();
       setAttendance((a) => {
         const { [eventId]: _, ...rest } = a;
@@ -174,7 +169,6 @@ export default function App() {
     }
   };
 
-  // ───────────────── attendees dialog ─────────────────
   const handleViewAttendees = (event) => {
     setSelectedEvent(event);
     if (!attendance[event._id]) fetchAttendance(event._id);
@@ -186,7 +180,6 @@ export default function App() {
     setSelectedEvent(null);
   };
 
-  // ───────────────── rendering ─────────────────
   return (
     <Container sx={{ py: 4 }}>
       <Typography variant="h3" gutterBottom>
@@ -194,6 +187,13 @@ export default function App() {
       </Typography>
 
       <Stack direction="row" spacing={2} mb={3}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={refreshEvents}
+        >
+          Refresh Events
+        </Button>
         <Button
           variant="contained"
           color="success"
@@ -239,22 +239,30 @@ export default function App() {
                     {rows.length === 0 ? "—" : `${rows.length}`}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() => handleViewAttendees(event)}
-                      sx={{ mr: 1 }}
-                    >
-                      View Attendees
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="error"
-                      size="small"
-                      onClick={() => handleDeleteEvent(event._id)}
-                    >
-                      Delete
-                    </Button>
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => handleViewAttendees(event)}
+                      >
+                        View Attendees
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => fetchAttendance(event._id)}
+                      >
+                        Refresh
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        size="small"
+                        onClick={() => handleDeleteEvent(event._id)}
+                      >
+                        Delete
+                      </Button>
+                    </Stack>
                   </TableCell>
                 </TableRow>
               );
@@ -268,14 +276,25 @@ export default function App() {
         <DialogTitle>Attendees for {selectedEvent?.name || ""}</DialogTitle>
         <DialogContent dividers>
           <List>
-            {(attendance[selectedEvent?._id] || []).map(({ user }) => (
-              <ListItem key={user._id} divider>
-                <ListItemText
-                  primary={`${user.name} ${user.surname}`}
-                  secondary={new Date(user.seenAt).toLocaleString()}
-                />
-              </ListItem>
-            ))}
+            {(attendance[selectedEvent?._id] || []).map(
+              ({ user, seenAt, emotion }) => (
+                <ListItem key={user._id} divider>
+                  <ListItemText
+                    primary={`${user.name} ${user.surname}`}
+                    secondary={
+                      <>
+                        Seen at: {new Date(seenAt).toLocaleString()} <br />
+                        {emotion?.emotion
+                          ? `Emotion: ${emotion.emotion} (${Math.round(
+                              emotion.confidence * 100
+                            )}%)`
+                          : "Emotion: —"}
+                      </>
+                    }
+                  />
+                </ListItem>
+              )
+            )}
           </List>
         </DialogContent>
         <DialogActions>
