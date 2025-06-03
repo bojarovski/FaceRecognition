@@ -257,11 +257,11 @@ Na spodnji sliki so prikazani:
 - Stolpčni diagrami za _accuracy_, _F1-score_, _čas treniranja_ in _hitrost sklepanja_
 - Radar graf, ki prikazuje primerjavo štirih ključnih metrik
 
-![Vizualni prikaz rezultatov](model_results.png)
+![Vizualni prikaz rezultatov](model_comparison.png)
 
 #### 🕸️ Radar graf – celostna zmogljivost modelov
 
-![Radar graf](model_performance_radar.png)
+![Radar graf](radar_chart.png)
 
 ### 🔎 Matrike zmede
 
