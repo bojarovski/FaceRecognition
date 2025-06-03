@@ -226,3 +226,59 @@ Glavne funkcionalnosti vključujejo:
 Spodnji diagram prikazuje medsebojne povezave med komponentami sistema:
 
 ![Diagram arhitekture](system_diagram.png)
+
+## 📊 Rezultati
+
+Po izvedbi faze testiranja smo primerjali tri modele glede na različne metrike, pri čemer smo uporabili skupno 2562 slik iz javno dostopnega nabora podatkov z 31 različnimi osebami. Ocena je bila izvedena na testnem delu podatkovnega nabora.
+
+Uporabljene metrike:
+
+- **Accuracy (%):** Delež pravilno prepoznanih primerov.
+- **Precision (%):** Natančnost klasifikacije (TP / (TP + FP)).
+- **Recall (%):** Občutljivost modela (TP / (TP + FN)).
+- **F1-Score (%):** Harmonizirana sredina med precision in recall.
+- **Training Time (s):** Čas treniranja modela v sekundah.
+- **Inference Speed (faces/s):** Število obrazov, ki jih model obdeluje na sekundo.
+
+### 📐 Kvantitativna primerjava modelov
+
+| Model   | Accuracy (%) | Precision (%) | Recall (%) | F1-Score (%) | Training Time (s) | Inference Speed (faces/s) |
+| ------- | ------------ | ------------- | ---------- | ------------ | ----------------- | ------------------------- |
+| Model A | 97.24        | 97.94         | 96.20      | 96.49        | 1939.91           | 1.17                      |
+| Model B | 85.60        | 87.29         | 85.53      | 85.33        | 834.45            | 38.16                     |
+| Model C | 27.63        | 25.87         | 25.90      | 24.14        | 1021.56           | 39.97                     |
+
+### 📈 Vizualna primerjava
+
+#### 📊 Stolpčni in radar grafi
+
+Na spodnji sliki so prikazani:
+
+- Stolpčni diagrami za _accuracy_, _F1-score_, _čas treniranja_ in _hitrost sklepanja_
+- Radar graf, ki prikazuje primerjavo štirih ključnih metrik
+
+![Vizualni prikaz rezultatov](model_results.png)
+
+#### 🕸️ Radar graf – celostna zmogljivost modelov
+
+![Radar graf](model_performance_radar.png)
+
+### 🔎 Matrike zmede
+
+Za vsakega izmed modelov smo generirali matriko zmede, ki prikazuje število pravilnih in nepravilnih klasifikacij po posameznih osebah.
+
+- **Model A** – `face_recognition`:
+
+  ![Confusion Matrix – Model A](conf_a.png)
+
+- **Model B** – `ResNet-50`:
+
+  ![Confusion Matrix – Model B](conf_b.png)
+
+- **Model C** – Custom CNN:
+
+  ![Confusion Matrix – Model C](conf_c.png)
+
+---
+
+Na podlagi prikazanih rezultatov je bil za produkcijsko integracijo izbran **Model A**, saj je dosegel najvišjo natančnost in F1-mero, kar je ključno za zanesljivo prepoznavo obrazov v realnem času.
