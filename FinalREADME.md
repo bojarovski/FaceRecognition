@@ -49,11 +49,27 @@ Pomembna nadgradnja sistema je tudi **modul za prepoznavo čustev**, ki omogoča
 
 S tem projektom smo želeli pokazati, da je mogoče sodobne metode umetne inteligence povezati v enotno, uporabniku prijazno in učinkovito rešitev, ki ponuja realne prednosti v praksi in odpira pot nadaljnji nadgradnji, kot so sledenje vedenjskim vzorcem, napredna analitika in optimizacija delovnih procesov.
 
+## Sorodna dela
+
+Razvoj sistemov za prepoznavo obrazov temelji na številnih raziskavah in odprtokodnih orodjih. V nadaljevanju predstavljamo tri ključna dela, ki so vplivala na naš projekt:
+
+### 1. Dlib in `face_recognition` knjižnica  
+Knjižnica `face_recognition` temelji na orodju **Dlib**, ki uporablja **konvolucijsko nevronsko mrežo (CNN)** za ustvarjanje vektorskih predstavitev obrazov. Avtor Adam Geitgey je objavil odprtokodni projekt, ki omogoča enostavno zaznavanje in prepoznavanje obrazov z uporabo samo nekaj vrstic kode.  
+[GitHub projekt](https://github.com/ageitgey/face_recognition)
+
+### 2. OpenCV: Računalniški vid za zaznavanje obrazov  
+OpenCV je ena najbolj uporabljenih knjižnic za obdelavo slik in videoposnetkov. Ponuja metode za zaznavanje obrazov z uporabo Haar Cascades in sodobnih metod kot so HOG (Histogram of Oriented Gradients) in DNN moduli. Je pogosto izhodišče za študentske in prototipske projekte.  
+[OpenCV dokumentacija](https://docs.opencv.org/)
+
+### 3. FaceNet (Google Research)  
+FaceNet je globok nevronski model, ki slike obrazov pretvori v vektorje in omogoča primerjavo podobnosti med obrazi v prostoru. Uporablja **triplet loss funkcijo** za učenje. Čeprav je zahtevnejši za implementacijo, je postal osnova za mnoge sodobne rešitve, vključno s sistemi, kot je DeepFace.  
+[Povzetek na Wikipediji](https://en.wikipedia.org/wiki/FaceNet)
+
 ### Kako zagnati sistem
 
 Projekt je bil razvit kot praktičen, funkcionalen sistem, ki omogoča sledenje prisotnosti z uporabo kamere, prepoznavo obrazov in upravljanje dogodkov preko spletnega vmesnika. Arhitektura je sestavljena iz več povezanih komponent: React (frontend), Express.js (backend + MongoDB), Flask (most) in AI modul za zaznavo obrazov (dockeriziran Python modul). Za zagon celotnega sistema so na voljo pripravljene skripte, ki se nahajajo v mapi `scripts/`.
 
-#### ✅ Prva namestitev (potrebno samo enkrat)
+#### Prva namestitev (potrebno samo enkrat)
 
 1. Nastavite virtualna okolja za backend (Express in Flask):
 
@@ -97,7 +113,7 @@ V mapi `Dashboard/` zaženite React aplikacijo:
 npm run start
 ```
 
-#### 📌 Uporaba
+#### Uporaba
 
 Po uspešnem zagonu vseh komponent je sistem dostopen preko spletnega brskalnika. Uporabnik lahko:
 
@@ -120,12 +136,12 @@ S tem se bo samodejno posodobila datoteka `known_faces.pkl`, ki jo AI modul upor
 
 Razvoj sistema je potekal v dveh fazah. V prvi fazi smo izvedli testiranje različnih pristopov za prepoznavo obrazov, v drugi pa integracijo najbolje delujočega modela v sistem za preverjanje prisotnosti.
 
-#### 📌 Faza 1: Primerjava modelov za prepoznavo obrazov
+#### Faza 1: Primerjava modelov za prepoznavo obrazov
 
 Uporabili smo javno dostopen podatkovni nabor s portala Kaggle:  
 🔗 **[Face Recognition Dataset – vasukipatel](https://www.kaggle.com/datasets/vasukipatel/face-recognition-dataset)**
 
-📊 **Povzetek nabora podatkov**:
+**Povzetek nabora podatkov**:
 
 - Skupno število slik: **2.562**
 - Skupno število oseb: **31**
@@ -166,7 +182,7 @@ Podatkovni nabor smo razdelili v razmerju 70:15:15 (učenje:validacija:test). Na
 - Uporabljen je bil `SGD` optimizer, `CrossEntropyLoss` in `MultiStepLR` scheduler.
 - Slike so bile predhodno obdelane z `Resize`, `RandomHorizontalFlip`, `RandomRotation`, `ColorJitter` in `Normalize`.
 
-#### 📊 Metodologija vrednotenja
+#### Metodologija vrednotenja
 
 Za primerjavo modelov smo uporabili naslednje metrike:
 
@@ -180,25 +196,25 @@ Za primerjavo modelov smo uporabili naslednje metrike:
 
 Vrednosti metrik so bile izračunane na testnem delu podatkovnega nabora. Rezultati so bili prikazani v tabelah in grafih (stolpčni diagrami, radar graf).
 
-### 📦 Faza 2: Integracija sistema
+### Faza 2: Integracija sistema
 
 Na podlagi rezultatov testiranja iz faze 1 smo v sistem integrirali model A — knjižnico `face_recognition`, saj je pokazala najboljše razmerje med hitrostjo in natančnostjo (glej poglavje _Poskusi in rezultati_). Sistem smo zasnovali kot razširljiv in modularen, pri čemer je vsak del aplikacije odgovoren za točno določeno nalogo.
 
-#### 🧩 Pregled arhitekture sistema
+#### Pregled arhitekture sistema
 
 Celoten sistem je sestavljen iz naslednjih komponent:
 
-**1. 📷 Kamera + AI modul (Docker)**  
+**1. Kamera + AI modul (Docker)**  
 Modul za prepoznavo obrazov je implementiran v jeziku Python z uporabo knjižnice `face_recognition`. Kamera prek modula `camera_client.py` zajema slike in jih pošilja v zaledni API `/recognize`, ki vrne seznam prepoznanih oseb.  
 Modul deluje znotraj Docker okolja in uporablja `known_faces.pkl` za vnaprej naučene vektorske predstavitve uporabnikov.
 
-**2. 🧠 Prepoznavanje čustev**  
+**2. Prepoznavanje čustev**  
 Vzpostavljen je ločen Flask strežnik (na portu 5002), ki uporablja knjižnico `deepface` za zaznavo obraznih čustev. Vhodna slika je kodirana v base64 in poslana na `/analyse`, kjer se izvede analiza čustev z uporabo modela RetinaFace.
 
-**3. 🎥 AI kontrolni most (Flask bridge)**  
+**3. AI kontrolni most (Flask bridge)**  
 Komponenta `AI_Control/app.py` deluje kot vmesnik med uporabniškim vmesnikom (frontend) in AI modulom. Omogoča zagon in zaustavitev modula za prepoznavo prek HTTP zahtevkov na `/start-camera` in `/stop-camera`.
 
-**4. 🌐 Express.js strežnik**  
+**4. Express.js strežnik**  
 Glavni strežnik zaledja je implementiran v Express.js in zagotavlja REST API za delo z dogodki, uporabniki in prisotnostjo.  
 Moduli vključujejo:
 
@@ -207,7 +223,7 @@ Moduli vključujejo:
 - `routes/userRoutes.js`: dodajanje novih uporabnikov z možnostjo nalaganja slike (Multer).
 - Podatki se hranijo v MongoDB prek modelov `User`, `Event` in `Attendance`.
 
-**5. 💻 React frontend (Dashboard)**  
+**5. React frontend (Dashboard)**  
 Uporabniški vmesnik omogoča organizatorjem dogodkov:
 
 - ustvarjanje novih dogodkov,
@@ -221,13 +237,13 @@ Glavne funkcionalnosti vključujejo:
 - Vmesnik za zagon AI kamere in zaustavitev.
 - Vizualizacijo prisotnosti s pomočjo material-ui komponent.
 
-#### 🖼️ Diagram arhitekture sistema
+#### Diagram arhitekture sistema
 
 Spodnji diagram prikazuje medsebojne povezave med komponentami sistema:
 
 ![Diagram arhitekture](system_diagram.png)
 
-## 📊 Rezultati
+## Rezultati
 
 Po izvedbi faze testiranja smo primerjali tri modele glede na različne metrike, pri čemer smo uporabili skupno 2562 slik iz javno dostopnega nabora podatkov z 31 različnimi osebami. Ocena je bila izvedena na testnem delu podatkovnega nabora.
 
@@ -240,7 +256,7 @@ Uporabljene metrike:
 - **Training Time (s):** Čas treniranja modela v sekundah.
 - **Inference Speed (faces/s):** Število obrazov, ki jih model obdeluje na sekundo.
 
-### 📐 Kvantitativna primerjava modelov
+### Kvantitativna primerjava modelov
 
 | Model   | Accuracy (%) | Precision (%) | Recall (%) | F1-Score (%) | Training Time (s) | Inference Speed (faces/s) |
 | ------- | ------------ | ------------- | ---------- | ------------ | ----------------- | ------------------------- |
@@ -248,9 +264,9 @@ Uporabljene metrike:
 | Model B | 85.60        | 87.29         | 85.53      | 85.33        | 834.45            | 38.16                     |
 | Model C | 27.63        | 25.87         | 25.90      | 24.14        | 1021.56           | 39.97                     |
 
-### 📈 Vizualna primerjava
+### Vizualna primerjava
 
-#### 📊 Stolpčni in radar grafi
+#### Stolpčni in radar grafi
 
 Na spodnji sliki so prikazani:
 
@@ -259,11 +275,11 @@ Na spodnji sliki so prikazani:
 
 ![Vizualni prikaz rezultatov](model_comparison.png)
 
-#### 🕸️ Radar graf – celostna zmogljivost modelov
+#### Radar graf – celostna zmogljivost modelov
 
 ![Radar graf](radar_chart.png)
 
-### 🔎 Matrike zmede
+### Matrike zmede
 
 Za vsakega izmed modelov smo generirali matriko zmede, ki prikazuje število pravilnih in nepravilnih klasifikacij po posameznih osebah.
 
