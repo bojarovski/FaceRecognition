@@ -298,3 +298,33 @@ Za vsakega izmed modelov smo generirali matriko zmede, ki prikazuje število pra
 ---
 
 Na podlagi prikazanih rezultatov je bil za produkcijsko integracijo izbran **Model A**, saj je dosegel najvišjo natančnost in F1-mero, kar je ključno za zanesljivo prepoznavo obrazov v realnem času.
+
+
+## Zaključek
+
+Opisali smo zasnovo in implementacijo avtomatiziranega sistema za preverjanje prisotnosti na podlagi prepoznavanja obrazov. Predstavili smo arhitekturo rešitve, primerjavo treh različnih modelov za prepoznavanje obrazov in rezultate naše evalvacije. Na podlagi natančnosti, hitrosti in enostavnosti integracije smo za produkcijsko uporabo izbrali knjižnico `face_recognition`. Sistem je popolnoma avtomatiziran, zanesljiv in modularen, kar omogoča dodajanje funkcij, kot sta analiza čustev ali napredno spremljanje vedenja.
+
+**Ključne ugotovitve:**
+- **Hitrost in zmogljivost v realnem času**  
+  Medtem ko je `face_recognition` zelo natančen, je bil počasnejši pri inferenci, zato smo morali optimizirati velikost vhodnih slik in tok podatkov prek Dockerja.
+- **Pomen časa zaznave v realnih pogojih**  
+  Ugotovili smo, da je ključnega pomena hitrost detekcije, še posebej, kadar hkrati teče več sistemov. Tu je potrebno najti kompromis med odzivnim časom in porabo strojne opreme, saj krajši čas zaznave običajno zahteva večje računske vire.
+
+### Nadaljnji koraki pri testiranju in izboljšavah
+
+- **Preizkusi v realnih okoljih**  
+  Sistem preizkusite v učilnicah, pisarnah in na javnih dogodkih, da ocenite njegovo delovanje pri različnih svetlobnih pogojih, kotih gledanja in velikostih skupin.
+
+- **Razširitev in raznolikost nabora podatkov**  
+  Zberite več slik istih oseb z različnimi izrazi obraza, dodatki (očala, kape) in pri različnih svetlobnih pogojih, da povečate robustnost modela.
+
+
+## Viri
+
+1. Face Recognition Dataset – vasukipatel, Kaggle: https://www.kaggle.com/datasets/vasukipatel/face-recognition-dataset  
+2. GitHub – face_recognition (Dlib/CNN): https://github.com/ageitgey/face_recognition  
+3. OpenCV dokumentacija: https://docs.opencv.org/  
+4. FaceNet (Google Research) – https://en.wikipedia.org/wiki/FaceNet  
+5. He, K., Zhang, X., Ren, S., & Sun, J. (2016). **Deep Residual Learning for Image Recognition**. *CVPR 2016*. https://arxiv.org/abs/1512.03385  
+6. Serengil, S. S. & Ozpinar, A. (2021). **DeepFace: A Lightweight Face Recognition and Facial Attribute Analysis (Age, Gender, Emotion, Race) Framework**. *arXiv*. https://arxiv.org/abs/2005.10813  
+7. Docker Documentation – https://docs.docker.com/  
