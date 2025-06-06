@@ -83,7 +83,7 @@ Projekt je bil razvit kot praktičen, funkcionalen sistem, ki omogoča sledenje 
 ./scripts/docker_build.sh
 ```
 
-#### ▶️ Zagon sistema (ob vsakem zagonu)
+#### Zagon sistema (ob vsakem zagonu)
 
 Ko je okolje pripravljeno, je za delovanje sistema potrebno zagnati naslednje komponente:
 
@@ -105,7 +105,7 @@ Ko je okolje pripravljeno, je za delovanje sistema potrebno zagnati naslednje ko
 ./scripts/docker_run.sh
 ```
 
-#### 🌐 Zagon spletnega vmesnika
+#### Zagon spletnega vmesnika
 
 V mapi `Dashboard/` zaženite React aplikacijo:
 
@@ -139,7 +139,7 @@ Razvoj sistema je potekal v dveh fazah. V prvi fazi smo izvedli testiranje razli
 #### Faza 1: Primerjava modelov za prepoznavo obrazov
 
 Uporabili smo javno dostopen podatkovni nabor s portala Kaggle:  
-🔗 **[Face Recognition Dataset – vasukipatel](https://www.kaggle.com/datasets/vasukipatel/face-recognition-dataset)**
+**[Face Recognition Dataset – vasukipatel](https://www.kaggle.com/datasets/vasukipatel/face-recognition-dataset)**
 
 **Povzetek nabora podatkov**:
 
